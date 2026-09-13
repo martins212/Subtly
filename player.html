@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6285666107031610" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player — Subtly</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0B0E1A">
+<style>
+  .page-wrap { max-width: 900px; margin: 0 auto; padding: 0 6vw 40px; }
+  .card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .file-btn {
+    display: inline-block; padding: 11px 16px; border-radius: 8px;
+    background: var(--bg-panel-2); color: var(--text); border: 1px solid var(--border);
+    font-size: 14px; font-weight: 600; cursor: pointer; text-align: center;
+  }
+  .file-btn input { display: none; }
+  #player-container {
+    position: relative; width: 100%; aspect-ratio: 16/9;
+    background: #000; border-radius: 14px; overflow: hidden; display: none;
+  }
+  #player-container:fullscreen, #player-container:-webkit-full-screen {
+    aspect-ratio: unset; width: 100vw; height: 100vh; border-radius: 0;
+  }
+  #player { width: 100%; height: 100%; }
+  #fullscreen-btn {
+    position: absolute; top: 10px; right: 10px; z-index: 10;
+    padding: 8px 12px; font-size: 13px; background: rgba(0,0,0,0.6);
+    color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
+  }
+  #subtitle-overlay { position: absolute; left: 5%; right: 5%; bottom: 8%; text-align: center; pointer-events: none; z-index: 5; }
+  #subtitle-overlay span {
+    display: inline-block;
+    background: var(--sub-bg, rgba(0,0,0,0.7));
+    color: var(--sub-color, #fff);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: var(--sub-font-size, 20px);
+    line-height: 1.35;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    max-width: 100%;
+  }
+  #player-container:fullscreen #subtitle-overlay span,
+  #player-container:-webkit-full-screen #subtitle-overlay span {
+    font-size: calc(var(--sub-font-size, 20px) + 8px);
+  }
+  .style-btn.selected { border-color: var(--gold); color: var(--gold); }
+  .status { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .status.ok { color: #6fd28c; }
+  .sync-controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .sync-controls button { padding: 10px 16px; font-size: 13px; }
+  #offset-display { font-size: 14px; color: var(--text); min-width: 70px; text-align: center; font-weight: 700; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  .saved-list { display: flex; flex-direction: column; gap: 8px; }
+  .saved-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--bg-panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+  }
+  .saved-item-info { min-width: 0; }
+  .saved-item-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saved-item-meta { font-size: 12px; color: var(--muted); }
+  .saved-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .saved-item-actions button { padding: 7px 12px; font-size: 12.5px; }
+  .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .icon-btn:hover { color: var(--danger); border-color: var(--danger); }
+  .empty-note { color: var(--muted); font-size: 13.5px; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+  }
+  .modal-card .modal-icon { font-size: 34px; margin-bottom: 10px; }
+  .modal-card h3 { font-size: 20px; margin-bottom: 10px; }
+  .modal-card p { color: var(--muted); font-size: 14.5px; margin-bottom: 20px; line-height: 1.5; }
+  .modal-card ul { text-align: left; color: #d7dae3; font-size: 14px; margin: 0 0 22px; padding-left: 20px; }
+  .modal-card ul li { margin-bottom: 6px; }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo"><img src="logo.svg" class="logo-icon" alt="Subtly logo"> Subtly</div>
+  <div class="nav-actions">
+    <span id="pro-badge" style="display:none; color:var(--gold); font-weight:700; font-size:14px;">✨ Pro</span>
+    <a href="#" class="btn btn-primary" id="upgrade-btn" style="display:none; text-decoration:none;">Upgrade to Pro</a>
+    <button class="btn btn-secondary" id="logout-btn">Log out</button>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div id="ad-slot" style="display:none; margin-bottom:14px;"></div>
+
+  <div class="card">
+    <label for="yt-url">YouTube link</label>
+    <input type="text" id="yt-url" placeholder="Paste a YouTube URL, e.g. https://www.youtube.com/watch?v=...">
+    <div class="row"><button class="btn btn-primary" id="load-video-btn">Load video</button></div>
+    <div class="status" id="video-status"></div>
+  </div>
+
+  <div class="card">
+    <label>Subtitle file (.srt or .vtt)</label>
+    <div class="row">
+      <label class="file-btn">Choose file<input type="file" id="sub-file" accept=".srt,.vtt"></label>
+      <button class="btn btn-secondary" id="clear-subs-btn">Clear subtitles</button>
+    </div>
+    <div class="status" id="sub-status"></div>
+    <div class="hint">
+      Don't have a subtitle file for this video? Tools like
+      <a href="https://turboscribe.ai" target="_blank" rel="noopener">TurboScribe</a>
+      can generate one — paste the same video link there, transcribe it, and export as .srt or .vtt to use here.
+    </div>
+  </div>
+
+  <div id="player-container">
+    <div id="player"></div>
+    <div id="subtitle-overlay"></div>
+    <button id="fullscreen-btn">⛶ Fullscreen</button>
+  </div>
+  <div class="hint" id="kbd-hint" style="display:none; text-align:center; margin: -6px 0 14px;">
+    Keyboard: <strong>Space</strong> play/pause · <strong>← →</strong> seek 5s · <strong>F</strong> fullscreen
+  </div>
+
+  <div class="card" id="sync-card" style="display:none;">
+    <label style="text-align:center;">Subtitle timing offset</label>
+    <div class="sync-controls">
+      <button class="btn btn-secondary" id="delay-minus">−0.5s</button>
+      <span id="offset-display">0.0s</span>
+      <button class="btn btn-secondary" id="delay-plus">+0.5s</button>
+      <button class="btn btn-secondary" id="reset-offset">Reset</button>
+    </div>
+    <div class="row" style="justify-content:center; margin-top:14px;">
+      <button class="btn btn-primary" id="save-video-btn">Save to My Videos</button>
+    </div>
+    <div class="status" id="save-status" style="text-align:center;"></div>
+    <div class="hint">Subtitles play automatically in sync with the video. Only use the offset if they consistently appear a bit early or late.</div>
+  </div>
+
+  <div class="card" id="style-card" style="display:none;">
+    <label style="text-align:center;">Subtitle appearance</label>
+    <div class="row" style="justify-content:center;">
+      <button class="btn btn-secondary style-btn" data-type="size" data-value="16">Small</button>
+      <button class="btn btn-secondary style-btn" data-type="size" data-value="20">Medium</button>
+      <button class="btn btn-secondary style-btn" data-type="size" data-value="26">Large</button>
+    </div>
+    <div class="row" style="justify-content:center;">
+      <button class="btn btn-secondary style-btn" data-type="opacity" data-value="0.35">Light bg</button>
+      <button class="btn btn-secondary style-btn" data-type="opacity" data-value="0.7">Medium bg</button>
+      <button class="btn btn-secondary style-btn" data-type="opacity" data-value="1">Solid bg</button>
+    </div>
+    <div class="row" style="justify-content:center;">
+      <button class="btn btn-secondary style-btn" data-type="color" data-value="#ffffff">White text</button>
+      <button class="btn btn-secondary style-btn" data-type="color" data-value="#F4C95D">Yellow text</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>My Videos</label>
+    <div class="saved-list" id="saved-list">
+      <div class="empty-note" id="saved-empty">Nothing saved yet — load a video and subtitles, then tap "Save to My Videos."</div>
+    </div>
+  </div>
+
+  <p style="text-align:center; margin-top: 8px;">
+    <a href="mailto:subtlysupport@gmail.com" style="color: var(--muted); font-size: 13px;">Need help? Contact support</a>
+  </p>
+</div>
+
+<div class="modal-overlay" id="upgrade-modal">
+  <div class="modal-card">
+    <div class="modal-icon">✨</div>
+    <h3>You've saved 3 videos</h3>
+    <p>That's the Free plan limit. Upgrade to Pro to keep going:</p>
+    <ul>
+      <li>Unlimited saved videos</li>
+      <li>No ads</li>
+      <li>Same subtitle sync, styling, and resume features</li>
+    </ul>
+    <div class="modal-actions">
+      <a href="#" class="btn btn-primary" id="modal-upgrade-btn">Upgrade to Pro</a>
+      <button class="btn btn-secondary" id="modal-dismiss-btn">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="pwa-register.js"></script>
+<script>
+document.getElementById('logout-btn').addEventListener('click', signOutUser);
+
+let currentUser = null;
+let db = null;
+let isPro = false;
+
+// ============================================================
+// Your live Paystack payment link for Subtly Pro.
+// After-payment redirect is set to success.html on Paystack's side.
+// ============================================================
+const STRIPE_PAYMENT_LINK = "https://paystack.shop/pay/subtlypro";
+
+document.getElementById('upgrade-btn').href = STRIPE_PAYMENT_LINK;
+document.getElementById('modal-upgrade-btn').href = STRIPE_PAYMENT_LINK;
+document.getElementById('modal-upgrade-btn').target = '_blank';
+document.getElementById('modal-dismiss-btn').addEventListener('click', function() {
+  document.getElementById('upgrade-modal').classList.remove('open');
+});
+
+initPageAuth(function(user) {
+  currentUser = user;
+  if (FIREBASE_NOT_CONFIGURED) return;
+  db = firebase.firestore();
+  const userDocRef = db.collection('users').doc(user.uid);
+  userDocRef.get().then(function(doc) {
+    if (doc.exists && doc.data().isPro) {
+      isPro = true;
+      document.getElementById('pro-badge').style.display = 'inline';
+    } else {
+      isPro = false;
+      document.getElementById('upgrade-btn').style.display = 'inline-block';
+      loadAdSlot();
+    }
+    loadSavedVideos();
+  });
+});
+
+function loadAdSlot() {
+  // ============================================================
+  // Flip this to true once your AdSense account is approved.
+  // Keeping it false avoids reserving empty ad space in the meantime.
+  // ============================================================
+  const ADS_APPROVED = false;
+  if (!ADS_APPROVED) return;
+
+  const ADSENSE_CLIENT_ID = "ca-pub-6285666107031610";
+  if (ADSENSE_CLIENT_ID.indexOf("YOUR_ID_HERE") !== -1) return;
+
+  const slot = document.getElementById('ad-slot');
+  slot.style.display = 'block';
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + ADSENSE_CLIENT_ID;
+  script.crossOrigin = "anonymous";
+  document.head.appendChild(script);
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.setAttribute('data-ad-client', ADSENSE_CLIENT_ID);
+  ins.setAttribute('data-ad-slot', 'auto');
+  ins.setAttribute('data-ad-format', 'auto');
+  ins.setAttribute('data-full-width-responsive', 'true');
+  slot.appendChild(ins);
+  (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
+
+let player;
+let subtitleCues = [];
+let currentSubtitleText = '';
+let currentSubtitleFileName = '';
+let offsetSeconds = 0;
+let syncInterval = null;
+let apiReady = false;
+let pendingVideoId = null;
+
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+window.onYouTubeIframeAPIReady = function() {
+  apiReady = true;
+  if (pendingVideoId) { createPlayer(pendingVideoId); pendingVideoId = null; }
+};
+
+function extractVideoId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&\s]+)/,
+    /(?:youtu\.be\/)([^?&\s]+)/,
+    /(?:youtube\.com\/embed\/)([^?&\s]+)/,
+    /(?:youtube\.com\/shorts\/)([^?&\s]+)/
+  ];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
+
+function createPlayer(videoId) {
+  document.getElementById('player-container').style.display = 'block';
+  if (player && player.loadVideoById) {
+    player.loadVideoById(videoId);
+    if (pendingResumeTime > 5) {
+      const seekTarget = pendingResumeTime;
+      setTimeout(function() { player.seekTo(seekTarget, true); }, 800);
+    }
+    pendingResumeTime = 0;
+    startResumeTracking();
+    return;
+  }
+  player = new YT.Player('player', {
+    videoId: videoId,
+    playerVars: { rel: 0, modestbranding: 1, fs: 0 },
+    events: {
+      onReady: function(e) {
+        if (pendingResumeTime > 5) { e.target.seekTo(pendingResumeTime, true); }
+        pendingResumeTime = 0;
+        startSyncLoop();
+        startResumeTracking();
+      }
+    }
+  });
+}
+
+function loadVideoFromUrl(url) {
+  const statusEl = document.getElementById('video-status');
+  const videoId = extractVideoId(url);
+  if (!videoId) {
+    statusEl.textContent = "Couldn't find a valid YouTube video ID in that link. Try pasting the full URL.";
+    statusEl.className = 'status';
+    return null;
+  }
+  statusEl.textContent = 'Video loaded.';
+  statusEl.className = 'status ok';
+  document.getElementById('kbd-hint').style.display = 'block';
+  if (apiReady) createPlayer(videoId); else pendingVideoId = videoId;
+  return videoId;
+}
+
+document.getElementById('load-video-btn').addEventListener('click', function() {
+  const url = document.getElementById('yt-url').value.trim();
+  currentSavedDocRef = null;
+  pendingResumeTime = 0;
+  loadVideoFromUrl(url);
+});
+
+document.getElementById('fullscreen-btn').addEventListener('click', function() {
+  const container = document.getElementById('player-container');
+  const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!fsElement) {
+    if (container.requestFullscreen) container.requestFullscreen();
+    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+  } else {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+});
+
+// --- Keyboard shortcuts (desktop) ---
+document.addEventListener('keydown', function(e) {
+  const activeTag = (document.activeElement && document.activeElement.tagName) || '';
+  if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return; // don't hijack typing
+  if (!player || typeof player.getPlayerState !== 'function') return;
+
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo();
+  } else if (e.code === 'ArrowLeft') {
+    e.preventDefault();
+    player.seekTo(Math.max(0, player.getCurrentTime() - 5), true);
+  } else if (e.code === 'ArrowRight') {
+    e.preventDefault();
+    player.seekTo(player.getCurrentTime() + 5, true);
+  } else if (e.code === 'KeyF') {
+    e.preventDefault();
+    document.getElementById('fullscreen-btn').click();
+  }
+});
+
+function timeToSeconds(h, m, s, ms) { return (+h)*3600 + (+m)*60 + (+s) + (+ms)/1000; }
+
+function parseSubtitles(text) {
+  const cues = [];
+  const normalized = text.replace(/\r/g, '');
+  const blocks = normalized.split(/\n\n+/);
+  const timeLineRegex = /(\d{2}):(\d{2}):(\d{2})[.,](\d{1,3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[.,](\d{1,3})/;
+  for (const block of blocks) {
+    const lines = block.split('\n').filter(l => l.trim() !== '');
+    if (lines.length === 0) continue;
+    let timeLineIndex = lines.findIndex(l => timeLineRegex.test(l));
+    if (timeLineIndex === -1) continue;
+    const match = lines[timeLineIndex].match(timeLineRegex);
+    const start = timeToSeconds(match[1], match[2], match[3], match[4].padEnd(3,'0'));
+    const end = timeToSeconds(match[5], match[6], match[7], match[8].padEnd(3,'0'));
+    const textLines = lines.slice(timeLineIndex+1).join('\n').replace(/<[^>]+>/g, '');
+    if (textLines.trim()) cues.push({ start, end, text: textLines.trim() });
+  }
+  return cues.sort((a,b) => a.start - b.start);
+}
+
+function applySubtitles(text, fileName) {
+  const statusEl = document.getElementById('sub-status');
+  try {
+    subtitleCues = parseSubtitles(text);
+    currentSubtitleText = text;
+    currentSubtitleFileName = fileName || 'subtitles.srt';
+    if (subtitleCues.length === 0) {
+      statusEl.textContent = "No subtitle cues found — check the file format.";
+      statusEl.className = 'status';
+    } else {
+      statusEl.textContent = `Loaded ${subtitleCues.length} subtitle lines from "${currentSubtitleFileName}".`;
+      statusEl.className = 'status ok';
+      document.getElementById('sync-card').style.display = 'block';
+      document.getElementById('style-card').style.display = 'block';
+    }
+  } catch (err) {
+    statusEl.textContent = "Couldn't parse that file. Make sure it's a valid .srt or .vtt file.";
+    statusEl.className = 'status';
+  }
+}
+
+document.getElementById('sub-file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) { applySubtitles(evt.target.result, file.name); };
+  reader.readAsText(file);
+});
+
+document.getElementById('clear-subs-btn').addEventListener('click', function() {
+  subtitleCues = [];
+  currentSubtitleText = '';
+  currentSubtitleFileName = '';
+  document.getElementById('sub-file').value = '';
+  document.getElementById('sub-status').textContent = 'Subtitles cleared.';
+  document.getElementById('sub-status').className = 'status';
+  document.getElementById('subtitle-overlay').innerHTML = '';
+  document.getElementById('sync-card').style.display = 'none';
+  document.getElementById('style-card').style.display = 'none';
+});
+
+function updateOffsetDisplay() {
+  const sign = offsetSeconds > 0 ? '+' : '';
+  document.getElementById('offset-display').textContent = `${sign}${offsetSeconds.toFixed(1)}s`;
+}
+document.getElementById('delay-plus').addEventListener('click', function() { offsetSeconds += 0.5; updateOffsetDisplay(); });
+document.getElementById('delay-minus').addEventListener('click', function() { offsetSeconds -= 0.5; updateOffsetDisplay(); });
+document.getElementById('reset-offset').addEventListener('click', function() { offsetSeconds = 0; updateOffsetDisplay(); });
+
+function startSyncLoop() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(function() {
+    if (!player || typeof player.getCurrentTime !== 'function') return;
+    const t = player.getCurrentTime() - offsetSeconds;
+    const overlay = document.getElementById('subtitle-overlay');
+    const cue = subtitleCues.find(c => t >= c.start && t <= c.end);
+    overlay.innerHTML = cue ? cue.text.split('\n').map(l => `<span>${escapeHtml(l)}</span>`).join('<br>') : '';
+  }, 150);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// --- Subtitle appearance (saved on this device) ---
+const overlayEl = document.getElementById('subtitle-overlay');
+const STYLE_STORAGE_KEY = 'subtlySubtitleStyle';
+let subtitleStyle = { size: '20', opacity: '0.7', color: '#ffffff' };
+
+function loadSubtitleStyle() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STYLE_STORAGE_KEY));
+    if (saved) subtitleStyle = Object.assign(subtitleStyle, saved);
+  } catch (e) { /* ignore corrupt/missing storage */ }
+  applySubtitleStyle();
+}
+
+function applySubtitleStyle() {
+  overlayEl.style.setProperty('--sub-font-size', subtitleStyle.size + 'px');
+  overlayEl.style.setProperty('--sub-bg', `rgba(0,0,0,${subtitleStyle.opacity})`);
+  overlayEl.style.setProperty('--sub-color', subtitleStyle.color);
+  document.querySelectorAll('.style-btn').forEach(function(btn) {
+    const isMatch =
+      (btn.dataset.type === 'size' && btn.dataset.value === subtitleStyle.size) ||
+      (btn.dataset.type === 'opacity' && btn.dataset.value === subtitleStyle.opacity) ||
+      (btn.dataset.type === 'color' && btn.dataset.value.toLowerCase() === subtitleStyle.color.toLowerCase());
+    btn.classList.toggle('selected', isMatch);
+  });
+}
+
+document.querySelectorAll('.style-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const key = btn.dataset.type === 'size' ? 'size' : (btn.dataset.type === 'opacity' ? 'opacity' : 'color');
+    subtitleStyle[key] = btn.dataset.value;
+    localStorage.setItem(STYLE_STORAGE_KEY, JSON.stringify(subtitleStyle));
+    applySubtitleStyle();
+  });
+});
+
+loadSubtitleStyle();
+
+// --- Resume where you left off ---
+let currentSavedDocRef = null;
+let pendingResumeTime = 0;
+let resumeSaveInterval = null;
+
+function startResumeTracking() {
+  if (resumeSaveInterval) clearInterval(resumeSaveInterval);
+  resumeSaveInterval = setInterval(function() {
+    if (!currentSavedDocRef || !player || typeof player.getPlayerState !== 'function') return;
+    if (player.getPlayerState() === 1) { // 1 = YT.PlayerState.PLAYING
+      currentSavedDocRef.set({ lastPosition: player.getCurrentTime() }, { merge: true }).catch(function() {});
+    }
+  }, 10000);
+}
+
+// --- My Videos (Firestore) ---
+const MAX_SUBTITLE_BYTES = 900000; // stay safely under Firestore's ~1MiB document limit
+
+function saveStatus(msg, ok) {
+  const el = document.getElementById('save-status');
+  el.textContent = msg;
+  el.className = 'status' + (ok ? ' ok' : '');
+}
+
+document.getElementById('save-video-btn').addEventListener('click', function() {
+  if (!currentUser || !db) { saveStatus("Can't save right now — try refreshing the page.", false); return; }
+  const url = document.getElementById('yt-url').value.trim();
+  const videoId = extractVideoId(url);
+  if (!videoId) { saveStatus("Load a valid video first.", false); return; }
+  if (subtitleCues.length === 0) { saveStatus("Load a subtitle file first.", false); return; }
+
+  const videosRef = db.collection('users').doc(currentUser.uid).collection('videos');
+  const thisDocRef = videosRef.doc(videoId);
+
+  thisDocRef.get().then(function(existingDoc) {
+    const proceedToSave = function() { doSaveVideo(thisDocRef, url, videoId); };
+    if (existingDoc.exists || isPro) {
+      proceedToSave();
+      return;
+    }
+    videosRef.get().then(function(snapshot) {
+      if (snapshot.size >= 3) {
+        saveStatus("Free plan is limited to 3 saved videos.", false);
+        document.getElementById('upgrade-modal').classList.add('open');
+      } else {
+        proceedToSave();
+      }
+    });
+  });
+});
+
+function fetchVideoTitle(videoId) {
+  const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=json`;
+  return fetch(oembedUrl)
+    .then(function(res) { if (!res.ok) throw new Error('oEmbed failed'); return res.json(); })
+    .then(function(data) { return data.title || null; })
+    .catch(function() { return null; });
+}
+
+function doSaveVideo(thisDocRef, url, videoId) {
+  const subtitleBytes = new Blob([currentSubtitleText]).size;
+  const docData = {
+    url: url,
+    videoId: videoId,
+    subtitleFileName: currentSubtitleFileName,
+    savedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (subtitleBytes <= MAX_SUBTITLE_BYTES) {
+    docData.subtitleText = currentSubtitleText;
+  }
+
+  fetchVideoTitle(videoId).then(function(title) {
+    if (title) docData.videoTitle = title;
+    thisDocRef.set(docData)
+      .then(function() {
+        if (subtitleBytes > MAX_SUBTITLE_BYTES) {
+          saveStatus("Saved — but this subtitle file was too large to store, so you'll need to re-upload it next time.", true);
+        } else {
+          saveStatus("Saved to My Videos.", true);
+        }
+        currentSavedDocRef = thisDocRef;
+        startResumeTracking();
+        loadSavedVideos();
+      })
+      .catch(function(err) { saveStatus("Couldn't save: " + err.message, false); });
+  });
+}
+
+function formatSavedDate(timestamp) {
+  if (!timestamp || !timestamp.toDate) return '';
+  const d = timestamp.toDate();
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function loadSavedVideos() {
+  const listEl = document.getElementById('saved-list');
+  const emptyEl = document.getElementById('saved-empty');
+  const videosRef = db.collection('users').doc(currentUser.uid).collection('videos');
+  videosRef
+    .orderBy('savedAt', 'desc').limit(20).get()
+    .then(function(snapshot) {
+      listEl.innerHTML = '';
+      if (snapshot.empty) {
+        listEl.appendChild(emptyEl);
+        return;
+      }
+      snapshot.forEach(function(doc) {
+        const data = doc.data();
+        const item = document.createElement('div');
+        item.className = 'saved-item';
+        const displayTitle = data.videoTitle || data.subtitleFileName || data.videoId;
+        item.innerHTML = `
+          <div class="saved-item-info">
+            <div class="saved-item-title">${escapeHtml(displayTitle)}</div>
+            <div class="saved-item-meta">${escapeHtml(data.subtitleFileName || '')} · ${formatSavedDate(data.savedAt)}</div>
+          </div>
+          <div class="saved-item-actions">
+            <button class="btn btn-secondary load-btn">Load</button>
+            <button class="icon-btn delete-btn" title="Delete">✕</button>
+          </div>
+        `;
+        item.querySelector('.load-btn').addEventListener('click', function() {
+          document.getElementById('yt-url').value = data.url;
+          currentSavedDocRef = videosRef.doc(doc.id);
+          pendingResumeTime = data.lastPosition || 0;
+          loadVideoFromUrl(data.url);
+          if (data.subtitleText) {
+            applySubtitles(data.subtitleText, data.subtitleFileName);
+          } else {
+            document.getElementById('sub-status').textContent = 'This one\'s subtitle file was too large to store — please re-upload it.';
+            document.getElementById('sub-status').className = 'status';
+          }
+        });
+        item.querySelector('.delete-btn').addEventListener('click', function() {
+          db.collection('users').doc(currentUser.uid).collection('videos').doc(doc.id).delete()
+            .then(loadSavedVideos);
+        });
+        listEl.appendChild(item);
+      });
+    })
+    .catch(function(err) {
+      listEl.innerHTML = '';
+      const errEl = document.createElement('div');
+      errEl.className = 'empty-note';
+      errEl.textContent = "Couldn't load your saved videos: " + err.message;
+      listEl.appendChild(errEl);
+    });
+}
+</script>
+</body>
+</html>

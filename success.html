@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6285666107031610" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to Pro — Subtly</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .center-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
+  }
+  .center-card {
+    max-width: 420px; background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 40px 32px;
+  }
+  .badge { font-size: 40px; margin-bottom: 12px; }
+  h1 { font-size: 24px; margin-bottom: 10px; }
+  p { color: var(--muted); margin-bottom: 26px; }
+</style>
+</head>
+<body>
+<div class="center-wrap">
+  <div class="center-card">
+    <div class="badge">✨</div>
+    <h1 id="status-title">Confirming your upgrade…</h1>
+    <p id="status-text">Just a moment.</p>
+    <a href="player.html" class="btn btn-primary" id="continue-btn" style="display:none;">Go to your videos</a>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+initPageAuth(function(user) {
+  const db = firebase.firestore();
+  db.collection('users').doc(user.uid).set({ isPro: true, upgradedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+    .then(function() {
+      document.getElementById('status-title').textContent = "You're on Pro!";
+      document.getElementById('status-text').textContent = "Ads are off and your saved videos are unlimited from now on.";
+      document.getElementById('continue-btn').style.display = 'inline-block';
+    })
+    .catch(function(err) {
+      document.getElementById('status-title').textContent = "Something went wrong";
+      document.getElementById('status-text').textContent = err.message;
+    });
+});
+</script>
+</body>
+</html>

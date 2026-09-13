@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-deep: #0B0E1A;
+  --bg-panel: #131829;
+  --bg-panel-2: #1B2136;
+  --border: #262E47;
+  --gold: #F4C95D;
+  --gold-dim: #C9A24A;
+  --teal: #35D0BA;
+  --text: #EDEEF3;
+  --muted: #8B92A8;
+  --danger: #F0654F;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, .display {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+a { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button, .btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  padding: 13px 24px;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+button:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+button:active, .btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--gold);
+  color: #1a1400;
+}
+.btn-primary:hover { filter: brightness(1.08); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg-panel-2); }
+
+.btn-google {
+  background: #fff;
+  color: #1f1f1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+.btn-google:hover { filter: brightness(0.96); }
+
+input[type="email"], input[type="password"], input[type="text"] {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text);
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+input:focus { border-color: var(--teal); }
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 6vw;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+.nav-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.nav-logo-mark {
+  display: inline-block;
+  background: var(--gold);
+  color: #1a1400;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+.logo-icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  display: block;
+}
+.nav-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 480px) {
+  .nav { padding: 16px 5vw; }
+  .nav-logo { font-size: 17px; }
+  .nav-actions .btn { padding: 9px 14px; font-size: 13px; }
+}
+
+/* The caption-bar motif: reused as the structural device across the site
+   instead of generic bordered cards. */
+.caption-bar {
+  display: inline-block;
+  background: rgba(19, 24, 41, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 20px;
+}
+
+.muted { color: var(--muted); }

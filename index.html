@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6285666107031610" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtly — Add subtitles to any video</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0B0E1A">
+<style>
+  .hero-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4vw 6vw 6vw;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .hero-eyebrow {
+    color: var(--gold);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .hero-headline {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.08;
+    margin-bottom: 22px;
+  }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 46ch;
+    margin-bottom: 32px;
+  }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-ctas button { font-size: 16px; padding: 15px 28px; }
+
+  .mock-screen {
+    position: relative;
+    aspect-ratio: 16/10;
+    background: linear-gradient(160deg, #1B2136, #0B0E1A);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .mock-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(244,201,93,0.10), transparent 55%),
+      radial-gradient(circle at 75% 75%, rgba(53,208,186,0.10), transparent 50%);
+  }
+  .mock-controls {
+    position: absolute;
+    top: 16px; left: 16px; right: 16px;
+    display: flex; gap: 6px;
+  }
+  .mock-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .mock-caption {
+    position: absolute;
+    left: 8%; right: 8%; bottom: 14%;
+    text-align: center;
+  }
+  .mock-caption span {
+    display: inline-block;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 17px;
+    font-weight: 600;
+    min-height: 1.4em;
+  }
+  .mock-caption span::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: #fff;
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 0.9s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .demo-wrap {
+    max-width: 640px;
+    margin: 0 auto 80px;
+  }
+  .demo-title {
+    text-align: center;
+    font-size: clamp(24px, 3vw, 32px);
+    margin-bottom: 10px;
+  }
+  .demo-sub {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 36px;
+  }
+  .demo-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .demo-field-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .demo-input {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 12px;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .demo-btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .demo-btn {
+    background: var(--gold);
+    color: #1a1400;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 8px;
+  }
+  .demo-video {
+    position: relative;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(140deg, #24304f, #0B0E1A 70%);
+    margin-bottom: 16px;
+  }
+  .demo-video::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 65% 30%, rgba(53,208,186,0.18), transparent 55%);
+  }
+  .demo-caption {
+    position: absolute; left: 8%; right: 8%; bottom: 12%; text-align: center;
+  }
+  .demo-caption span {
+    background: rgba(0,0,0,0.75); color: #fff; padding: 6px 14px;
+    border-radius: 6px; font-size: 14px; font-weight: 600;
+  }
+  .demo-file-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-panel-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--muted);
+  }
+  .demo-file-row strong { color: var(--text); }
+
+  section { padding: 2vw 6vw; }
+  .steps-wrap {
+    max-width: 1000px;
+    margin: 40px auto 80px;
+  }
+  .steps-title {
+    font-size: clamp(26px, 3vw, 34px);
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .step {
+    border-top: 2px solid var(--gold-dim);
+    padding-top: 16px;
+  }
+  .step-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .step h3 { font-size: 19px; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: 15px; margin: 0; }
+
+  .cta-band {
+    max-width: 1000px;
+    margin: 0 auto 90px;
+    text-align: center;
+    padding: 56px 6vw;
+    border-radius: 18px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+  }
+  .cta-band h2 { font-size: clamp(24px, 3vw, 32px); margin-bottom: 14px; }
+  .cta-band p { color: var(--muted); margin-bottom: 26px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 6vw;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 820px) {
+    .hero-wrap { grid-template-columns: 1fr; padding-top: 6vw; }
+    .steps { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mock-caption span::after { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="nav-logo"><img src="logo.svg" class="logo-icon" alt="Subtly logo"> Subtly</div>
+  <div class="nav-actions">
+    <a href="login.html" class="btn btn-secondary">Log in</a>
+    <a href="login.html?mode=signup" class="btn btn-primary">Sign up</a>
+  </div>
+</div>
+
+<div class="hero-wrap">
+  <div>
+    <div class="hero-eyebrow">For anything YouTube won't caption</div>
+    <h1 class="hero-headline">Watch it in any language. Understand it in yours.</h1>
+    <p class="hero-sub">Paste a video link, drop in your own subtitle file, and watch them play perfectly in sync — for all the foreign-language content that never got official subtitles.</p>
+    <div class="hero-ctas">
+      <a href="login.html?mode=signup" class="btn btn-primary">Get started free</a>
+      <a href="login.html" class="btn btn-secondary">I have an account</a>
+    </div>
+  </div>
+  <div class="mock-screen">
+    <div class="mock-controls">
+      <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+    </div>
+    <div class="mock-caption"><span id="typewriter"></span></div>
+  </div>
+</div>
+
+<section class="demo-wrap">
+  <h2 class="demo-title">See it in action</h2>
+  <p class="demo-sub">No login needed to see how it works — here's what the actual player looks like.</p>
+  <div class="demo-card">
+    <div class="demo-field-label">YouTube link</div>
+    <div class="demo-input">https://youtube.com/watch?v=…</div>
+    <div class="demo-btn-row"><div class="demo-btn">Load video</div></div>
+    <div class="demo-video">
+      <div class="demo-caption"><span>Where have you been all this time?</span></div>
+    </div>
+    <div class="demo-file-row">📄 <span><strong>episode-12.srt</strong> — 214 lines loaded</span></div>
+  </div>
+</section>
+
+<section class="steps-wrap">
+  <h2 class="steps-title">Three steps. No editing software.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <h3>Paste the link</h3>
+      <p>Drop in any YouTube URL and it loads right in the player, controls and all.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <h3>Upload your subtitles</h3>
+      <p>Add an .srt or .vtt file from your device — your own translation, or one you found elsewhere.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <h3>Press play</h3>
+      <p>Subtitles track the video automatically. Pause, rewind, skip ahead — they stay in sync.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="cta-band">
+    <h2>Stop missing what's being said.</h2>
+    <p>Free to use. No video ever leaves your browser.</p>
+    <a href="login.html?mode=signup" class="btn btn-primary">Create your account</a>
+  </div>
+</section>
+
+<footer>
+  Subtly — subtitles stay in your browser and are never uploaded anywhere.<br>
+  <a href="faq.html">FAQ</a> · <a href="privacy.html">Privacy Policy</a> · <a href="mailto:subtlysupport@gmail.com">Contact support</a>
+</footer>
+
+<script>
+  const phrases = ["Understand every word.", "अब हर शब्द समझें।", "Comprends chaque mot."];
+  const el = document.getElementById('typewriter');
+  let phraseIndex = 0, charIndex = 0, deleting = false;
+
+  function tick() {
+    const current = phrases[phraseIndex];
+    if (!deleting) {
+      charIndex++;
+      el.textContent = current.slice(0, charIndex);
+      if (charIndex === current.length) {
+        deleting = true;
+        setTimeout(tick, 1400);
+        return;
+      }
+    } else {
+      charIndex--;
+      el.textContent = current.slice(0, charIndex);
+      if (charIndex === 0) {
+        deleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+      }
+    }
+    setTimeout(tick, deleting ? 35 : 55);
+  }
+  tick();
+</script>
+
+<script src="pwa-register.js"></script>
+
+</body>
+</html>
