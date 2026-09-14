@@ -14,10 +14,35 @@
   .auth-wrap {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 24px;
+    gap: 28px;
   }
+  .auth-intro {
+    max-width: 400px;
+    text-align: center;
+  }
+  .auth-intro h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .auth-intro p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .auth-intro ul {
+    text-align: left;
+    color: #d7dae3;
+    font-size: 13.5px;
+    padding-left: 20px;
+    margin: 0;
+    display: inline-block;
+  }
+  .auth-intro li { margin-bottom: 4px; }
   .auth-card {
     width: 100%;
     max-width: 400px;
@@ -72,6 +97,19 @@
 <body>
 
 <div class="auth-wrap">
+  <div class="auth-intro">
+    <h2>Add your own subtitles to any video</h2>
+    <p>
+      Subtly plays videos from YouTube and overlays your own .srt or .vtt subtitle file on top,
+      perfectly synced to playback — built for foreign-language shows, interviews, and uploads that
+      never got official subtitles in your language.
+    </p>
+    <ul>
+      <li>Paste a video link — it plays with the real YouTube player</li>
+      <li>Upload your subtitle file — it syncs automatically as you watch</li>
+      <li>Save videos to your account and pick up where you left off</li>
+    </ul>
+  </div>
   <div class="auth-card">
     <div class="auth-logo">Subtly</div>
     <h1 class="auth-title" id="form-title">Welcome back</h1>
@@ -193,3 +231,4 @@
 </script>
 </body>
 </html>
+
