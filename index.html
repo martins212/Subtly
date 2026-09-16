@@ -11,6 +11,19 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0B0E1A">
 <style>
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .hero-eyebrow, .hero-headline, .hero-sub, .hero-ctas, .mock-screen {
+    opacity: 0;
+    animation: fadeInUp 0.7s ease forwards;
+  }
+  .hero-headline { animation-delay: 0.08s; }
+  .hero-sub { animation-delay: 0.18s; }
+  .hero-ctas { animation-delay: 0.28s; }
+  .mock-screen { animation-delay: 0.2s; }
+
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
   .hero-wrap {
     max-width: 1200px;
     margin: 0 auto;
@@ -242,7 +255,7 @@
   </div>
 </div>
 
-<section class="demo-wrap">
+<section class="demo-wrap reveal">
   <h2 class="demo-title">See it in action</h2>
   <p class="demo-sub">No login needed to see how it works — here's what the actual player looks like.</p>
   <div class="demo-card">
@@ -256,7 +269,7 @@
   </div>
 </section>
 
-<section class="steps-wrap">
+<section class="steps-wrap reveal">
   <h2 class="steps-title">Three steps. No editing software.</h2>
   <div class="steps">
     <div class="step">
@@ -278,7 +291,7 @@
 </section>
 
 <section>
-  <div class="cta-band">
+  <div class="cta-band reveal">
     <h2>Stop missing what's being said.</h2>
     <p>Free to use. No video ever leaves your browser.</p>
     <a href="login.html?mode=signup" class="btn btn-primary">Create your account</a>
@@ -319,6 +332,19 @@
 </script>
 
 <script src="pwa-register.js"></script>
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(function(el) { revealObserver.observe(el); });
+</script>
 
 </body>
-</html>
+    </html>
+        
