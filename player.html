@@ -12,6 +12,8 @@
 <meta name="theme-color" content="#0B0E1A">
 <style>
   .page-wrap { max-width: 900px; margin: 0 auto; padding: 0 6vw 40px; }
+  @keyframes cardAppear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .card-appear { animation: cardAppear 0.35s ease; }
   .card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
@@ -40,7 +42,7 @@
     padding: 8px 12px; font-size: 13px; background: rgba(0,0,0,0.6);
     color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
   }
-  #subtitle-overlay { position: absolute; left: 5%; right: 5%; bottom: 8%; text-align: center; pointer-events: none; z-index: 5; }
+  #subtitle-overlay { position: absolute; left: 5%; right: 5%; bottom: 8%; text-align: center; pointer-events: none; z-index: 5; opacity: 1; transition: opacity 0.15s ease; }
   #subtitle-overlay span {
     display: inline-block;
     background: var(--sub-bg, rgba(0,0,0,0.7));
@@ -81,7 +83,7 @@
   .empty-note { color: var(--muted); font-size: 13.5px; }
 
   .modal-overlay {
-    display: none;
+    display: flex;
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.6);
@@ -89,8 +91,12 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
   }
-  .modal-overlay.open { display: flex; }
+  .modal-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
   .modal-card {
     background: var(--bg-panel);
     border: 1px solid var(--border);
@@ -99,7 +105,10 @@
     max-width: 380px;
     width: 100%;
     text-align: center;
+    transform: scale(0.94) translateY(6px);
+    transition: transform 0.25s ease;
   }
+  .modal-overlay.open .modal-card { transform: scale(1) translateY(0); }
   .modal-card .modal-icon { font-size: 34px; margin-bottom: 10px; }
   .modal-card h3 { font-size: 20px; margin-bottom: 10px; }
   .modal-card p { color: var(--muted); font-size: 14.5px; margin-bottom: 20px; line-height: 1.5; }
@@ -431,6 +440,8 @@ function applySubtitles(text, fileName) {
       statusEl.className = 'status ok';
       document.getElementById('sync-card').style.display = 'block';
       document.getElementById('style-card').style.display = 'block';
+      document.getElementById('sync-card').classList.add('card-appear');
+      document.getElementById('style-card').classList.add('card-appear');
     }
   } catch (err) {
     statusEl.textContent = "Couldn't parse that file. Make sure it's a valid .srt or .vtt file.";
@@ -466,6 +477,7 @@ document.getElementById('delay-plus').addEventListener('click', function() { off
 document.getElementById('delay-minus').addEventListener('click', function() { offsetSeconds -= 0.5; updateOffsetDisplay(); });
 document.getElementById('reset-offset').addEventListener('click', function() { offsetSeconds = 0; updateOffsetDisplay(); });
 
+let lastCueText = null;
 function startSyncLoop() {
   if (syncInterval) clearInterval(syncInterval);
   syncInterval = setInterval(function() {
@@ -473,7 +485,15 @@ function startSyncLoop() {
     const t = player.getCurrentTime() - offsetSeconds;
     const overlay = document.getElementById('subtitle-overlay');
     const cue = subtitleCues.find(c => t >= c.start && t <= c.end);
-    overlay.innerHTML = cue ? cue.text.split('\n').map(l => `<span>${escapeHtml(l)}</span>`).join('<br>') : '';
+    const newText = cue ? cue.text : '';
+    if (newText !== lastCueText) {
+      overlay.style.opacity = '0';
+      setTimeout(function() {
+        overlay.innerHTML = cue ? cue.text.split('\n').map(l => `<span>${escapeHtml(l)}</span>`).join('<br>') : '';
+        overlay.style.opacity = '1';
+      }, 130);
+      lastCueText = newText;
+    }
   }, 150);
 }
 
@@ -671,3 +691,4 @@ function loadSavedVideos() {
 </script>
 </body>
 </html>
+
