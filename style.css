@@ -43,13 +43,25 @@ button, .btn {
   border: none;
   cursor: pointer;
   padding: 13px 24px;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+button:hover, .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
 }
 button:focus-visible, .btn:focus-visible, input:focus-visible, a:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
 }
-button:active, .btn:active { transform: scale(0.98); }
+button:active, .btn:active { transform: scale(0.98); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
 
 .btn-primary {
   background: var(--gold);
@@ -149,3 +161,4 @@ input:focus { border-color: var(--teal); }
 }
 
 .muted { color: var(--muted); }
+
