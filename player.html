@@ -29,18 +29,32 @@
     font-size: 14px; font-weight: 600; cursor: pointer; text-align: center;
   }
   .file-btn input { display: none; }
-  #player-container {
+  #fullscreen-target { position: relative; width: 100%; }
+  #video-box {
     position: relative; width: 100%; aspect-ratio: 16/9;
     background: #000; border-radius: 14px; overflow: hidden; display: none;
   }
-  #player-container:fullscreen, #player-container:-webkit-full-screen {
-    aspect-ratio: unset; width: 100vw; height: 100vh; border-radius: 0;
+  #fullscreen-target:fullscreen, #fullscreen-target:-webkit-full-screen {
+    width: 100vw; height: 100vh; display: flex; align-items: center;
+  }
+  #fullscreen-target:fullscreen #video-box, #fullscreen-target:-webkit-full-screen #video-box {
+    position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: unset; border-radius: 0;
   }
   #player { width: 100%; height: 100%; }
   #fullscreen-btn {
-    position: absolute; top: 10px; right: 10px; z-index: 10;
-    padding: 8px 12px; font-size: 13px; background: rgba(0,0,0,0.6);
-    color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px;
+    display: block; margin: 10px auto 0; padding: 9px 16px; font-size: 13px;
+    background: var(--bg-panel-2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; position: static;
+  }
+  #fullscreen-target:fullscreen #fullscreen-btn,
+  #fullscreen-target:-webkit-full-screen #fullscreen-btn {
+    position: absolute; top: 14px; left: 14px; z-index: 20; margin: 0;
+    background: rgba(0,0,0,0.65); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+    opacity: 1; transition: opacity 0.3s ease;
+  }
+  #fullscreen-target.controls-hidden:fullscreen #fullscreen-btn,
+  #fullscreen-target.controls-hidden:-webkit-full-screen #fullscreen-btn {
+    opacity: 0.12;
   }
   #subtitle-overlay { position: absolute; left: 5%; right: 5%; bottom: 8%; text-align: center; pointer-events: none; z-index: 5; opacity: 1; transition: opacity 0.15s ease; }
   #subtitle-overlay span {
@@ -55,8 +69,8 @@
     text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     max-width: 100%;
   }
-  #player-container:fullscreen #subtitle-overlay span,
-  #player-container:-webkit-full-screen #subtitle-overlay span {
+  #fullscreen-target:fullscreen #subtitle-overlay span,
+  #fullscreen-target:-webkit-full-screen #subtitle-overlay span {
     font-size: calc(var(--sub-font-size, 20px) + 8px);
   }
   .style-btn.selected { border-color: var(--gold); color: var(--gold); }
@@ -152,9 +166,11 @@
     </div>
   </div>
 
-  <div id="player-container">
-    <div id="player"></div>
-    <div id="subtitle-overlay"></div>
+  <div id="fullscreen-target">
+    <div id="video-box">
+      <div id="player"></div>
+      <div id="subtitle-overlay"></div>
+    </div>
     <button id="fullscreen-btn">⛶ Fullscreen</button>
   </div>
   <div class="hint" id="kbd-hint" style="display:none; text-align:center; margin: -6px 0 14px;">
@@ -325,7 +341,7 @@ function extractVideoId(url) {
 }
 
 function createPlayer(videoId) {
-  document.getElementById('player-container').style.display = 'block';
+  document.getElementById('video-box').style.display = 'block';
   if (player && player.loadVideoById) {
     player.loadVideoById(videoId);
     if (pendingResumeTime > 5) {
@@ -372,15 +388,54 @@ document.getElementById('load-video-btn').addEventListener('click', function() {
   loadVideoFromUrl(url);
 });
 
+const fsTarget = document.getElementById('fullscreen-target');
+let controlsHideTimer = null;
+
+function lockLandscape() {
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(function() { /* not supported on this device/browser (e.g. iOS Safari) — safe to ignore */ });
+  }
+}
+function unlockOrientation() {
+  if (screen.orientation && screen.orientation.unlock) {
+    try { screen.orientation.unlock(); } catch (e) { /* ignore */ }
+  }
+}
+
+function resetControlsHideTimer() {
+  fsTarget.classList.remove('controls-hidden');
+  if (controlsHideTimer) clearTimeout(controlsHideTimer);
+  controlsHideTimer = setTimeout(function() {
+    fsTarget.classList.add('controls-hidden');
+  }, 3000);
+}
+
 document.getElementById('fullscreen-btn').addEventListener('click', function() {
-  const container = document.getElementById('player-container');
   const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
   if (!fsElement) {
-    if (container.requestFullscreen) container.requestFullscreen();
-    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+    const req = fsTarget.requestFullscreen ? fsTarget.requestFullscreen() : (fsTarget.webkitRequestFullscreen ? fsTarget.webkitRequestFullscreen() : null);
+    if (req && req.then) req.then(lockLandscape);
+    else lockLandscape();
   } else {
     if (document.exitFullscreen) document.exitFullscreen();
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  }
+});
+
+document.addEventListener('fullscreenchange', function() {
+  const btn = document.getElementById('fullscreen-btn');
+  if (document.fullscreenElement) {
+    btn.textContent = '✕ Exit';
+    resetControlsHideTimer();
+    fsTarget.addEventListener('click', resetControlsHideTimer);
+    fsTarget.addEventListener('touchstart', resetControlsHideTimer);
+  } else {
+    btn.textContent = '⛶ Fullscreen';
+    unlockOrientation();
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    fsTarget.classList.remove('controls-hidden');
+    fsTarget.removeEventListener('click', resetControlsHideTimer);
+    fsTarget.removeEventListener('touchstart', resetControlsHideTimer);
   }
 });
 
